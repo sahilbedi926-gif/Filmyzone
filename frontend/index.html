@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamFlix - Netflix Clone</title>
+    <title>FimlyZone - Watch Movies & Web Series</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -49,7 +49,7 @@
         <div class="flex items-center space-x-8">
             <!-- Logo -->
             <a href="#" class="text-netflixRed font-black text-2xl md:text-3xl tracking-wider flex items-center gap-1">
-                <i class="fa-solid fa-play-circle text-netflixRed"></i> STREAMFLIX
+                <i class="fa-solid fa-play-circle text-netflixRed"></i> FIMLYZONE
             </a>
             
             <!-- Navigation Links -->
@@ -94,7 +94,7 @@
                     <a href="#" class="px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-user"></i> Account</a>
                     <a href="#" class="px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-circle-question"></i> Help Center</a>
                     <div class="border-t border-gray-800 my-1"></div>
-                    <a href="#" class="px-4 py-2 text-xs text-red-500 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out of StreamFlix</a>
+                    <a href="#" class="px-4 py-2 text-xs text-red-500 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out of FimlyZone</a>
                 </div>
             </div>
         </div>
@@ -111,7 +111,7 @@
             <!-- Hero Info Content -->
             <div class="relative z-10 px-4 md:px-12 max-w-2xl space-y-4">
                 <div class="flex items-center space-x-2">
-                    <span class="bg-netflixRed text-white text-xs font-bold px-2 py-0.5 rounded tracking-widest uppercase">N FILM</span>
+                    <span class="bg-netflixRed text-white text-xs font-bold px-2 py-0.5 rounded tracking-widest uppercase">FZ FILM</span>
                     <span id="heroMatch" class="text-green-400 font-semibold text-sm">98% Match</span>
                     <span id="heroRating" class="border border-gray-400 text-gray-300 text-xs px-1 rounded">TV-MA</span>
                 </div>
@@ -213,7 +213,7 @@
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-white">AI StreamFlix Assistant</h3>
+                    <h3 class="text-lg font-bold text-white">AI FimlyZone Assistant</h3>
                     <p class="text-xs text-purple-300">Powered by Gemini AI for personalized suggestions</p>
                 </div>
             </div>
@@ -269,7 +269,7 @@
                 <a href="#" class="hover:underline">Corporate Information</a>
                 <a href="#" class="hover:underline">Contact Us</a>
             </div>
-            <p>© 2026 StreamFlix, Inc. - Modern Netflix Clone Frontend Project</p>
+            <p>© 2026 FimlyZone, Inc. - All rights reserved.</p>
         </div>
     </footer>
 
@@ -444,7 +444,7 @@
                 { name: "Trending Now", filter: m => m.category === "Trending Now" },
                 { name: "Action & Adventure", filter: m => m.genre === "Action" },
                 { name: "Sci-Fi & Cyberpunk", filter: m => m.genre === "Sci-Fi" },
-                { name: "Popular on StreamFlix", filter: m => m.category === "Popular" }
+                { name: "Popular on FimlyZone", filter: m => m.category === "Popular" }
             ];
 
             if (myWatchlist.length > 0 && activeFilter === 'all' && !filteredMovies) {
@@ -714,7 +714,7 @@
             loadingDiv.classList.remove('hidden');
             contentDiv.innerHTML = '';
 
-            const systemPrompt = "You are an expert movie & show recommendation concierge for StreamFlix (a Netflix-style app). Based on the user's mood/query, recommend 2-3 titles from our library or real top movies. Format briefly with bullet points.";
+            const systemPrompt = "You are an expert movie & show recommendation concierge for FimlyZone (a Netflix-style app). Based on the user's mood/query, recommend 2-3 titles from our library or real top movies. Format briefly with bullet points.";
             const apiKey = ""; // Canvas auto-injects runtime API key
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
@@ -744,4 +744,4 @@
         }
     </script>
 </body>
-                                                                        </html>
+    </html>
