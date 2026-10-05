@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFlix - Netflix Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        netflixRed: '#E50914',
+                        netflixDark: '#141414',
+                        netflixGray: '#181818',
+                        netflixCard: '#2F2F2F'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for horizontal carousels */
+        .carousel-container::-webkit-scrollbar {
+            display: none;
+        }
+        .carousel-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hero-gradient {
+            background: linear-gradient(180deg, rgba(20,20,20,0) 0%, rgba(20,20,20,0.6) 60%, rgba(20,20,20,1) 100%),
+                        linear-gradient(90deg, rgba(20,20,20,0.8) 0%, rgba(20,20,20,0.4) 40%, rgba(20,20,20,0) 100%);
+        }
+        .modal-gradient {
+            background: linear-gradient(180deg, rgba(24,24,24,0) 0%, rgba(24,24,24,0.9) 70%, rgba(24,24,24,1) 100%);
+        }
+    </style>
+</head>
+<body class="bg-netflixDark text-white font-sans antialiased min-h-full flex flex-col selection:bg-netflixRed selection:text-white">
+
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 md:px-12 py-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
+        <div class="flex items-center space-x-8">
+            <!-- Logo -->
+            <a href="#" class="text-netflixRed font-black text-2xl md:text-3xl tracking-wider flex items-center gap-1">
+                <i class="fa-solid fa-play-circle text-netflixRed"></i> STREAMFLIX
+            </a>
+            
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-6 text-sm text-gray-300 font-medium">
+                <button onclick="filterCategory('all')" class="hover:text-white transition cursor-pointer nav-link active font-bold text-white">Home</button>
+                <button onclick="filterCategory('TV Shows')" class="hover:text-white transition cursor-pointer nav-link">TV Shows</button>
+                <button onclick="filterCategory('Movies')" class="hover:text-white transition cursor-pointer nav-link">Movies</button>
+                <button onclick="filterCategory('New & Popular')" class="hover:text-white transition cursor-pointer nav-link">New & Popular</button>
+                <button onclick="toggleMyListView()" class="hover:text-white transition cursor-pointer nav-link">My List</button>
+            </nav>
+        </div>
+
+        <div class="flex items-center space-x-4 md:space-x-6">
+            <!-- Search Input -->
+            <div class="relative flex items-center">
+                <button id="searchBtn" onclick="toggleSearchInput()" class="text-white hover:text-gray-300 focus:outline-none text-lg p-1">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Titles, genres, directors..." 
+                    class="w-0 opacity-0 transition-all duration-300 bg-black/70 border border-gray-600 text-white text-sm rounded-full px-4 py-1.5 focus:outline-none focus:border-white focus:w-48 sm:focus:w-64 focus:opacity-100">
+            </div>
+
+            <!-- AI Recommendation Trigger -->
+            <button onclick="openAiModal()" class="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-full text-xs md:text-sm font-semibold transition shadow-lg hover:shadow-purple-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i>
+                <span class="hidden sm:inline">AI Movie Finder</span>
+            </button>
+
+            <!-- Notifications -->
+            <button class="text-gray-300 hover:text-white text-lg hidden sm:block relative">
+                <i class="fa-regular fa-bell"></i>
+                <span class="absolute -top-1 -right-1 w-2 h-2 bg-netflixRed rounded-full"></span>
+            </button>
+
+            <!-- Profile Avatar -->
+            <div class="relative group">
+                <button class="flex items-center space-x-2 focus:outline-none">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="Profile" class="w-8 h-8 rounded border border-gray-700">
+                    <i class="fa-solid fa-caret-down text-xs text-gray-400 group-hover:rotate-180 transition-transform"></i>
+                </button>
+                <div class="absolute right-0 top-full mt-2 w-48 bg-black/90 border border-gray-800 rounded shadow-xl py-2 hidden group-hover:block transition-all z-50">
+                    <a href="#" class="px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-user"></i> Account</a>
+                    <a href="#" class="px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-circle-question"></i> Help Center</a>
+                    <div class="border-t border-gray-800 my-1"></div>
+                    <a href="#" class="px-4 py-2 text-xs text-red-500 hover:bg-gray-800 flex items-center gap-2"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out of StreamFlix</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <section id="heroSection" class="relative w-full h-[75vh] md:h-[85vh] overflow-hidden bg-black flex items-end pb-12 md:pb-24">
+            <!-- Hero Video / Image Background -->
+            <div class="absolute inset-0 w-full h-full">
+                <img id="heroBackdrop" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1920&q=80" alt="Hero Featured Title" class="w-full h-full object-cover object-center scale-105 transition-all duration-700">
+                <div class="hero-gradient absolute inset-0"></div>
+            </div>
+
+            <!-- Hero Info Content -->
+            <div class="relative z-10 px-4 md:px-12 max-w-2xl space-y-4">
+                <div class="flex items-center space-x-2">
+                    <span class="bg-netflixRed text-white text-xs font-bold px-2 py-0.5 rounded tracking-widest uppercase">N FILM</span>
+                    <span id="heroMatch" class="text-green-400 font-semibold text-sm">98% Match</span>
+                    <span id="heroRating" class="border border-gray-400 text-gray-300 text-xs px-1 rounded">TV-MA</span>
+                </div>
+                <h1 id="heroTitle" class="text-4xl md:text-6xl font-black tracking-tight drop-shadow-md">Cyber Origins</h1>
+                <p id="heroOverview" class="text-gray-300 text-sm md:text-base line-clamp-3 drop-shadow">In a sprawling cyberpunk metropolis, a renegade hacker uncovers a dark corporate conspiracy that threatens to rewrite human memories forever.</p>
+                
+                <div class="flex items-center space-x-3 pt-2">
+                    <button id="heroPlayBtn" onclick="playHeroTrailer()" class="bg-white hover:bg-gray-200 text-black font-bold px-6 py-2.5 rounded flex items-center gap-2 text-sm md:text-base transition shadow-md hover:scale-105">
+                        <i class="fa-solid fa-play text-lg"></i> Play
+                    </button>
+                    <button id="heroInfoBtn" onclick="openHeroDetails()" class="bg-gray-500/70 hover:bg-gray-500/90 text-white font-semibold px-6 py-2.5 rounded flex items-center gap-2 text-sm md:text-base transition backdrop-blur">
+                        <i class="fa-solid fa-circle-info text-lg"></i> More Info
+                    </button>
+                    <button id="heroMuteBtn" onclick="toggleHeroMute()" class="border border-gray-500 bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full text-sm transition ml-auto">
+                        <i id="heroMuteIcon" class="fa-solid fa-volume-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="rowsContainer" class="px-4 md:px-12 -mt-16 md:-mt-24 relative z-20 space-y-10 pb-16">
+            <!-- Dynamic Rows rendered via JavaScript -->
+        </section>
+    </main>
+
+    <div id="movieModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="relative w-full max-w-3xl bg-netflixGray rounded-lg overflow-hidden shadow-2xl border border-gray-800 max-h-[90vh] flex flex-col transform scale-95 transition-transform duration-300 overflow-y-auto">
+            <!-- Modal Close Button -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-30 w-9 h-9 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Modal Header Video/Poster Banner -->
+            <div class="relative w-full h-64 md:h-80 bg-black">
+                <img id="modalBackdrop" src="" alt="Title Backdrop" class="w-full h-full object-cover">
+                <div id="modalVideoPlayer" class="hidden absolute inset-0 w-full h-full bg-black flex items-center justify-center">
+                    <iframe id="modalIframe" class="w-full h-full" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+                <div class="modal-gradient absolute inset-0"></div>
+
+                <div class="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+                    <div>
+                        <h2 id="modalTitle" class="text-2xl md:text-4xl font-extrabold text-white drop-shadow-md mb-3">Movie Title</h2>
+                        <div class="flex items-center space-x-3">
+                            <button id="modalPlayBtn" onclick="startModalVideo()" class="bg-white hover:bg-gray-200 text-black font-bold px-5 py-2 rounded flex items-center gap-2 text-sm transition">
+                                <i class="fa-solid fa-play"></i> <span id="modalPlayText">Play Trailer</span>
+                            </button>
+                            <button id="modalAddListBtn" onclick="toggleWatchlistFromModal()" class="border border-gray-400 hover:border-white bg-black/50 text-white p-2.5 rounded-full transition">
+                                <i id="modalListIcon" class="fa-solid fa-plus"></i>
+                            </button>
+                            <button class="border border-gray-400 hover:border-white bg-black/50 text-white p-2.5 rounded-full transition">
+                                <i class="fa-regular fa-thumbs-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Body Details -->
+            <div class="p-6 md:p-8 space-y-6 text-gray-300 text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="flex items-center space-x-3 text-xs md:text-sm">
+                            <span id="modalMatch" class="text-green-400 font-bold">98% Match</span>
+                            <span id="modalYear" class="text-gray-400">2024</span>
+                            <span id="modalRating" class="border border-gray-600 text-gray-300 px-1.5 py-0.5 rounded text-[10px]">TV-MA</span>
+                            <span id="modalDuration" class="text-gray-400">2h 15m</span>
+                            <span class="border border-gray-600 text-gray-400 px-1 py-0.5 rounded text-[10px]">HD</span>
+                        </div>
+                        <p id="modalOverview" class="text-gray-200 leading-relaxed text-sm">Movie overview description content goes here.</p>
+                    </div>
+
+                    <div class="space-y-2 text-xs text-gray-400 border-t md:border-t-0 md:border-l border-gray-800 pt-4 md:pt-0 md:pl-6">
+                        <div><span class="text-gray-500">Cast:</span> <span id="modalCast" class="text-gray-300">Actor A, Actor B, Actor C</span></div>
+                        <div><span class="text-gray-500">Genres:</span> <span id="modalGenre" class="text-gray-300">Action, Sci-Fi</span></div>
+                        <div><span class="text-gray-500">This show is:</span> <span class="text-gray-300">Exciting, Mind-bending, Dark</span></div>
+                    </div>
+                </div>
+
+                <!-- Recommended Movies Grid in Modal -->
+                <div class="border-t border-gray-800 pt-6 space-y-4">
+                    <h3 class="text-lg font-bold text-white">More Like This</h3>
+                    <div id="modalRecommendations" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <!-- Dynamic Recommended Cards -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="relative w-full max-w-xl bg-netflixGray border border-purple-900/50 rounded-2xl shadow-2xl p-6 space-y-5 overflow-hidden">
+            <button onclick="closeAiModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-lg font-bold">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">AI StreamFlix Assistant</h3>
+                    <p class="text-xs text-purple-300">Powered by Gemini AI for personalized suggestions</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <label class="block text-xs font-semibold text-gray-300">What are you in the mood to watch?</label>
+                <textarea id="aiPrompt" rows="3" placeholder="e.g. A fast-paced sci-fi thriller set in space with mind-bending plot twists..." 
+                    class="w-full bg-black/60 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex space-x-2">
+                    <button onclick="quickPrompt('Mind-bending Thriller')" class="text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1 rounded-full">Mind-bending</button>
+                    <button onclick="quickPrompt('Funny Feel Good Movie')" class="text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1 rounded-full">Feel Good</button>
+                    <button onclick="quickPrompt('Dark Cyberpunk Anime')" class="text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1 rounded-full">Cyberpunk</button>
+                </div>
+                <button onclick="generateAiRecommendation()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-sparkles"></i> Find Titles
+                </button>
+            </div>
+
+            <!-- AI Results Area -->
+            <div id="aiResults" class="hidden border-t border-gray-800 pt-4 space-y-3 max-h-60 overflow-y-auto pr-1">
+                <div id="aiLoading" class="hidden flex items-center justify-center py-6 space-x-2 text-purple-400">
+                    <i class="fa-solid fa-spinner animate-spin text-xl"></i>
+                    <span class="text-sm">Consulting AI movie expert...</span>
+                </div>
+                <div id="aiContent" class="text-sm text-gray-300 space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-black text-gray-500 text-xs px-6 md:px-12 py-10 border-t border-gray-900 mt-auto">
+        <div class="max-w-5xl mx-auto space-y-6">
+            <div class="flex space-x-6 text-base text-gray-400">
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" class="hover:text-white"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <a href="#" class="hover:underline">Audio Description</a>
+                <a href="#" class="hover:underline">Help Center</a>
+                <a href="#" class="hover:underline">Gift Cards</a>
+                <a href="#" class="hover:underline">Media Center</a>
+                <a href="#" class="hover:underline">Investor Relations</a>
+                <a href="#" class="hover:underline">Jobs</a>
+                <a href="#" class="hover:underline">Terms of Use</a>
+                <a href="#" class="hover:underline">Privacy</a>
+                <a href="#" class="hover:underline">Legal Notices</a>
+                <a href="#" class="hover:underline">Cookie Preferences</a>
+                <a href="#" class="hover:underline">Corporate Information</a>
+                <a href="#" class="hover:underline">Contact Us</a>
+            </div>
+            <p>© 2026 StreamFlix, Inc. - Modern Netflix Clone Frontend Project</p>
+        </div>
+    </footer>
+
+    <script>
+        // Movie Database Mock Engine
+        const moviesData = [
+            {
+                id: 101,
+                title: "Cyber Origins",
+                category: "Popular",
+                genre: "Sci-Fi",
+                type: "Movies",
+                year: "2024",
+                duration: "2h 18m",
+                rating: "TV-MA",
+                match: "98%",
+                overview: "In a sprawling neon cyberpunk metropolis, a renegade memory hacker uncovers a dark corporate conspiracy threatening humanity's consciousness.",
+                cast: "Alex Mercer, Elena Rostova, Marcus Vance",
+                poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 102,
+                title: "The Silent Cosmos",
+                category: "Trending Now",
+                genre: "Sci-Fi",
+                type: "Movies",
+                year: "2023",
+                duration: "2h 35m",
+                rating: "PG-13",
+                match: "95%",
+                overview: "A solo deep-space astronaut responds to a distress frequency originating from an uncharted black hole event horizon.",
+                cast: "David Kim, Sarah Jenkins",
+                poster: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 103,
+                title: "Shadow Protocol",
+                category: "Action",
+                genre: "Action",
+                type: "TV Shows",
+                year: "2024",
+                duration: "1 Season",
+                rating: "TV-MA",
+                match: "99%",
+                overview: "An elite operative goes off-grid after being framed by his own covert intelligence agency, hunting down rogue agents across Europe.",
+                cast: "Liam Thorne, Chloe Dubois",
+                poster: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 104,
+                title: "Neon Pulse",
+                category: "Trending Now",
+                genre: "Action",
+                type: "Movies",
+                year: "2023",
+                duration: "1h 52m",
+                rating: "R",
+                match: "92%",
+                overview: "High-octane subterranean drag races collide with organized crime syndicates in Tokyo's underground night world.",
+                cast: "Kenji Sato, Mia Alverez",
+                poster: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 105,
+                title: "Chronicles of Aethelgard",
+                category: "Popular",
+                genre: "Fantasy",
+                type: "TV Shows",
+                year: "2024",
+                duration: "2 Seasons",
+                rating: "TV-14",
+                match: "97%",
+                overview: "Ancient realms collide when a young sorcerer inherits an ancient relic capable of shattering kingdoms or uniting them against the darkness.",
+                cast: "Gwenevere Croft, Julian Vance",
+                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 106,
+                title: "Velocity Shift",
+                category: "Action",
+                genre: "Action",
+                type: "Movies",
+                year: "2024",
+                duration: "1h 48m",
+                rating: "PG-13",
+                match: "89%",
+                overview: "A former Formula 1 champion is forced into a high-stakes getaway heist across treacherous mountain roads.",
+                cast: "Carlos Silva, Anna Wright",
+                poster: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 107,
+                title: "Quantum Horizon",
+                category: "Sci-Fi",
+                genre: "Sci-Fi",
+                type: "TV Shows",
+                year: "2023",
+                duration: "1 Season",
+                rating: "TV-MA",
+                match: "94%",
+                overview: "Scientists experimenting with quantum teleportation accidentally link two parallel Earths with wildly different histories.",
+                cast: "Dr. Rachel Hayes, Jonathan Ross",
+                poster: "https://images.unsplash.com/photo-1507499739999-097706ad8914?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            },
+            {
+                id: 108,
+                title: "Midnight Detective",
+                category: "Trending Now",
+                genre: "Mystery",
+                type: "TV Shows",
+                year: "2024",
+                duration: "3 Seasons",
+                rating: "TV-MA",
+                match: "96%",
+                overview: "A cynical noir investigator with supernatural perception untangles dark urban mysteries in rainy Seattle.",
+                cast: "Arthur Pendelton, Maya Lin",
+                poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=600&q=80",
+                backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
+                trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+            }
+        ];
+
+        // App State
+        let myWatchlist = [];
+        let activeFilter = 'all';
+        let activeMovieModal = null;
+        let isHeroMuted = true;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderRows();
+            setupScrollListener();
+        });
+
+        // Navbar Scroll Background Transition
+        function setupScrollListener() {
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('bg-netflixDark');
+                    navbar.classList.remove('bg-gradient-to-b', 'from-black/80', 'to-transparent');
+                } else {
+                    navbar.classList.remove('bg-netflixDark');
+                    navbar.classList.add('bg-gradient-to-b', 'from-black/80', 'to-transparent');
+                }
+            });
+        }
+
+        // Render Category Carousels
+        function renderRows(filteredMovies = null) {
+            const rowsContainer = document.getElementById('rowsContainer');
+            rowsContainer.innerHTML = '';
+
+            const listToRender = filteredMovies || moviesData;
+
+            // Define Row Categories
+            const categories = [
+                { name: "Trending Now", filter: m => m.category === "Trending Now" },
+                { name: "Action & Adventure", filter: m => m.genre === "Action" },
+                { name: "Sci-Fi & Cyberpunk", filter: m => m.genre === "Sci-Fi" },
+                { name: "Popular on StreamFlix", filter: m => m.category === "Popular" }
+            ];
+
+            if (myWatchlist.length > 0 && activeFilter === 'all' && !filteredMovies) {
+                categories.unshift({
+                    name: "My List",
+                    filter: m => myWatchlist.includes(m.id)
+                });
+            }
+
+            categories.forEach((cat, index) => {
+                const categoryMovies = listToRender.filter(cat.filter);
+                if (categoryMovies.length === 0) return;
+
+                const rowId = `row-${index}`;
+                const rowElement = document.createElement('div');
+                rowElement.className = 'space-y-3';
+
+                rowElement.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg md:text-xl font-bold text-white tracking-wide cursor-pointer hover:text-gray-300 transition flex items-center gap-2">
+                            ${cat.name}
+                            <span class="text-xs text-netflixRed opacity-0 hover:opacity-100 transition">Explore All <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                        </h2>
+                    </div>
+
+                    <div class="relative group/carousel">
+                        <!-- Left Carousel Arrow -->
+                        <button onclick="scrollCarousel('${rowId}', -1)" class="absolute left-0 top-0 bottom-0 z-30 bg-black/60 hover:bg-black/80 text-white px-2 opacity-0 group-hover/carousel:opacity-100 transition-opacity flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-left text-lg"></i>
+                        </button>
+
+                        <!-- Cards Scroll Container -->
+                        <div id="${rowId}" class="carousel-container flex space-x-3 overflow-x-auto scroll-smooth py-4 px-1">
+                            ${categoryMovies.map(movie => createMovieCardHTML(movie)).join('')}
+                        </div>
+
+                        <!-- Right Carousel Arrow -->
+                        <button onclick="scrollCarousel('${rowId}', 1)" class="absolute right-0 top-0 bottom-0 z-30 bg-black/60 hover:bg-black/80 text-white px-2 opacity-0 group-hover/carousel:opacity-100 transition-opacity flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-right text-lg"></i>
+                        </button>
+                    </div>
+                `;
+                rowsContainer.appendChild(rowElement);
+            });
+        }
+
+        // Build HTML for Individual Movie Card
+        function createMovieCardHTML(movie) {
+            const inWatchlist = myWatchlist.includes(movie.id);
+            return `
+                <div onclick="openModal(${movie.id})" class="flex-none w-40 sm:w-48 md:w-56 bg-netflixCard rounded-md overflow-hidden transform hover:scale-105 hover:z-30 transition-all duration-300 cursor-pointer shadow-lg group">
+                    <div class="relative h-56 sm:h-64 md:h-72 w-full">
+                        <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:opacity-90 transition">
+                        <div class="absolute top-2 right-2 bg-black/70 px-1.5 py-0.5 rounded text-[10px] font-bold text-green-400">
+                            ${movie.match}
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 space-y-2 bg-netflixGray">
+                        <div class="flex items-center justify-between">
+                            <div class="flex space-x-1.5">
+                                <button onclick="event.stopPropagation(); openModal(${movie.id})" class="w-7 h-7 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+                                    <i class="fa-solid fa-play text-xs"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); toggleWatchlist(${movie.id})" class="w-7 h-7 border border-gray-400 hover:border-white text-white rounded-full flex items-center justify-center transition">
+                                    <i class="fa-solid ${inWatchlist ? 'fa-check text-green-400' : 'fa-plus'} text-xs"></i>
+                                </button>
+                            </div>
+                            <span class="text-[10px] border border-gray-600 text-gray-400 px-1 rounded">${movie.rating}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white truncate">${movie.title}</h3>
+                            <p class="text-[11px] text-gray-400">${movie.genre} • ${movie.duration}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Carousel Scroll Control
+        function scrollCarousel(rowId, direction) {
+            const container = document.getElementById(rowId);
+            const scrollAmount = container.clientWidth * 0.75;
+            container.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+        }
+
+        // Modal Controls
+        function openModal(movieId) {
+            const movie = moviesData.find(m => m.id === movieId);
+            if (!movie) return;
+
+            activeMovieModal = movie;
+            document.getElementById('modalTitle').innerText = movie.title;
+            document.getElementById('modalBackdrop').src = movie.backdrop;
+            document.getElementById('modalOverview').innerText = movie.overview;
+            document.getElementById('modalMatch').innerText = movie.match + " Match";
+            document.getElementById('modalYear').innerText = movie.year;
+            document.getElementById('modalRating').innerText = movie.rating;
+            document.getElementById('modalDuration').innerText = movie.duration;
+            document.getElementById('modalCast').innerText = movie.cast;
+            document.getElementById('modalGenre').innerText = movie.genre;
+
+            // Reset video container
+            document.getElementById('modalVideoPlayer').classList.add('hidden');
+            document.getElementById('modalIframe').src = '';
+            document.getElementById('modalPlayText').innerText = 'Play Trailer';
+
+            // Watchlist icon state
+            updateModalWatchlistIcon(movie.id);
+
+            // Render recommendations
+            renderModalRecommendations(movie);
+
+            // Show Modal
+            const modal = document.getElementById('movieModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-95');
+            modal.firstElementChild.classList.add('scale-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('movieModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+
+            // Stop trailer
+            document.getElementById('modalIframe').src = '';
+            document.getElementById('modalVideoPlayer').classList.add('hidden');
+        }
+
+        function startModalVideo() {
+            if (!activeMovieModal) return;
+            const videoPlayer = document.getElementById('modalVideoPlayer');
+            const iframe = document.getElementById('modalIframe');
+
+            videoPlayer.classList.remove('hidden');
+            iframe.src = activeMovieModal.trailerUrl;
+            document.getElementById('modalPlayText').innerText = 'Playing...';
+        }
+
+        function renderModalRecommendations(currentMovie) {
+            const container = document.getElementById('modalRecommendations');
+            const recs = moviesData.filter(m => m.id !== currentMovie.id).slice(0, 3);
+
+            container.innerHTML = recs.map(m => `
+                <div onclick="openModal(${m.id})" class="bg-netflixCard rounded overflow-hidden cursor-pointer hover:opacity-80 transition p-2 space-y-2">
+                    <img src="${m.backdrop}" alt="${m.title}" class="w-full h-24 object-cover rounded">
+                    <div>
+                        <h4 class="text-xs font-bold text-white truncate">${m.title}</h4>
+                        <span class="text-[10px] text-green-400 font-semibold">${m.match} Match</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Watchlist Functionality
+        function toggleWatchlist(movieId) {
+            const index = myWatchlist.indexOf(movieId);
+            if (index > -1) {
+                myWatchlist.splice(index, 1);
+            } else {
+                myWatchlist.push(movieId);
+            }
+            renderRows();
+            if (activeMovieModal && activeMovieModal.id === movieId) {
+                updateModalWatchlistIcon(movieId);
+            }
+        }
+
+        function toggleWatchlistFromModal() {
+            if (activeMovieModal) {
+                toggleWatchlist(activeMovieModal.id);
+            }
+        }
+
+        function updateModalWatchlistIcon(movieId) {
+            const icon = document.getElementById('modalListIcon');
+            if (myWatchlist.includes(movieId)) {
+                icon.className = 'fa-solid fa-check text-green-400';
+            } else {
+                icon.className = 'fa-solid fa-plus';
+            }
+        }
+
+        function toggleMyListView() {
+            if (myWatchlist.length === 0) {
+                alert("Your watch list is currently empty! Click the (+) icon on any title to add it.");
+                return;
+            }
+            const watchlistMovies = moviesData.filter(m => myWatchlist.includes(m.id));
+            renderRows(watchlistMovies);
+        }
+
+        // Hero Controls
+        function playHeroTrailer() {
+            openModal(101); // Opens main hero title
+            startModalVideo();
+        }
+
+        function openHeroDetails() {
+            openModal(101);
+        }
+
+        function toggleHeroMute() {
+            isHeroMuted = !isHeroMuted;
+            const icon = document.getElementById('heroMuteIcon');
+            icon.className = isHeroMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+        }
+
+        // Search Engine
+        function toggleSearchInput() {
+            const input = document.getElementById('searchInput');
+            input.focus();
+        }
+
+        function handleSearch(query) {
+            const cleanQuery = query.toLowerCase().trim();
+            if (!cleanQuery) {
+                renderRows();
+                return;
+            }
+
+            const filtered = moviesData.filter(m => 
+                m.title.toLowerCase().includes(cleanQuery) ||
+                m.genre.toLowerCase().includes(cleanQuery) ||
+                m.cast.toLowerCase().includes(cleanQuery)
+            );
+
+            renderRows(filtered);
+        }
+
+        function filterCategory(type) {
+            if (type === 'all') {
+                renderRows();
+                return;
+            }
+            const filtered = moviesData.filter(m => m.type === type || m.category === type);
+            renderRows(filtered);
+        }
+
+        // Gemini AI Integration
+        function openAiModal() {
+            const modal = document.getElementById('aiModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeAiModal() {
+            const modal = document.getElementById('aiModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function quickPrompt(text) {
+            document.getElementById('aiPrompt').value = text;
+            generateAiRecommendation();
+        }
+
+        async function generateAiRecommendation() {
+            const promptText = document.getElementById('aiPrompt').value;
+            if (!promptText.trim()) return;
+
+            const resultsDiv = document.getElementById('aiResults');
+            const loadingDiv = document.getElementById('aiLoading');
+            const contentDiv = document.getElementById('aiContent');
+
+            resultsDiv.classList.remove('hidden');
+            loadingDiv.classList.remove('hidden');
+            contentDiv.innerHTML = '';
+
+            const systemPrompt = "You are an expert movie & show recommendation concierge for StreamFlix (a Netflix-style app). Based on the user's mood/query, recommend 2-3 titles from our library or real top movies. Format briefly with bullet points.";
+            const apiKey = ""; // Canvas auto-injects runtime API key
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const data = await response.json();
+                loadingDiv.classList.add('hidden');
+
+                const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (textResult) {
+                    contentDiv.innerHTML = `<div class="p-3 bg-black/40 rounded-lg border border-purple-900/30 whitespace-pre-line text-xs leading-relaxed text-purple-100">${textResult}</div>`;
+                } else {
+                    contentDiv.innerHTML = '<p class="text-red-400 text-xs">Could not fetch recommendations at this time.</p>';
+                }
+            } catch (err) {
+                loadingDiv.classList.add('hidden');
+                contentDiv.innerHTML = '<p class="text-red-400 text-xs">Failed to connect to AI movie concierge.</p>';
+            }
+        }
+    </script>
+</body>
+                                                                        </html>
